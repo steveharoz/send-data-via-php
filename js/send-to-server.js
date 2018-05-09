@@ -42,10 +42,8 @@ function sendJSON(experimentResults, experimentName = "myexperiment", subjectID,
 	.then(response => {
 		console.log(response)
 		if (response.endsWith("Yay Success!"))
-			showFinished();
+			callback();
 		else
 			showError(response);
 	});
-
-	return;
 }
