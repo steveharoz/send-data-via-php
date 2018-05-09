@@ -1,0 +1,57 @@
+<head>
+    <link rel="icon" href="data:,"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="js/send-to-server.js"></script>
+</head>
+
+<h1>Sending data example</h1>
+
+<h2 id="sending">Sending...</h2>
+<div id="error" style="display: none">
+    <h2>Scheiße</h2>
+    <p id="errorMessage"></p>
+</div>
+<div id="finished" style="display: none">
+    <h2>Finished</h2>
+    <p>Thank you. Please enter code <b id="subjectID"></b> into the Mechanical Turk form.</p>
+</div>
+
+<script>
+// make experiment
+var myExperimentData = { 
+    experimentName: "thing_test", // no spaces! 
+    subjectID: 12345,
+    date: new Date().toISOString().slice(0, 10),
+    duration: performance.now(),
+    windowSize: [window.innerWidth, window.innerHeight],
+    crazyText: "test\\text\twith\nescapes",
+    metadataThatWeDontNeed: "blah blah",
+    trials: []
+};
+
+// make trials
+for (let t = 0; t < 10; t++) {
+    myExperimentData.trials.push({
+        trialIndex: t,
+        condition: t % 2,
+        response: Math.random() > 0.5
+    });
+}
+
+// get ready for sending
+var cleanedExperiment = cleanDataBeforeSending(myExperimentData);
+
+// add a qulity check to file names to quickly see if something is wrong
+var accuracy = cleanedExperiment.trials.reduce((total, trial) => total+trial.response, 0) / cleanedExperiment.trials.length;
+accuracy = Math.round(accuracy * 100);
+
+// send
+sendJSON(
+    cleanedExperiment, 
+    cleanedExperiment.experimentName, 
+    cleanedExperiment.subjectID, 
+    cleanedExperiment.date, 
+    accuracy, 
+    showFinished
+);
+</script>
