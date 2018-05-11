@@ -1,57 +1,87 @@
+<!doctype html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
     <link rel="icon" href="data:,"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="js/send-to-server.js"></script>
 </head>
 
-<h1>Sending data example</h1>
+<body>
+    <h1>Sending data example</h1>
 
-<h2 id="sending">Sending...</h2>
-<div id="error" style="display: none">
-    <h2>Scheiße</h2>
-    <p id="errorMessage"></p>
-</div>
-<div id="finished" style="display: none">
-    <h2>Finished</h2>
-    <p>Thank you. Please enter code <b id="subjectID"></b> into the Mechanical Turk form.</p>
-</div>
+    <h2 id="sending">Sending...</h2>
+    <div id="error" style="display: none">
+        <h2>Scheiße</h2>
+        <p id="errorMessage"></p>
+    </div>
+    <div id="finished" style="display: none">
+        <h2>Finished</h2>
+        <p>Thank you. Please enter code <b id="subjectID"></b> into the Mechanical Turk form.</p>
+    </div>
 
-<script>
-// make experiment
-var myExperimentData = { 
-    experimentName: "thing_test", // no spaces! 
-    subjectID: 12345,
-    date: new Date().toISOString().slice(0, 10),
-    duration: performance.now(),
-    windowSize: [window.innerWidth, window.innerHeight],
-    crazyText: "test\\text\twith\nescapes",
-    metadataThatWeDontNeed: "blah blah",
-    trials: []
-};
+    <script>
+        // show when upload is successful
+        function showFinished() {
+            $('#sending').fadeOut().promise().done(() => $('#finished').fadeIn());
+            $('#subjectID').text(experiment.subjectID);
+        }
+        // show when upload fails
+        function showError(message) {
+            $('#sending').fadeOut().promise().done(() => $('#error').fadeIn());
+            $('#errorMessage').html(message);
+        }
+        // simplify and clean results before sending
+        function cleanDataBeforeSending (experimentResults) {
+            // compute duration (you need to set duration to performance.now() when the experiment starts)
+            experimentResults.duration = performance.now() - experimentResults.duration;
 
-// make trials
-for (let t = 0; t < 10; t++) {
-    myExperimentData.trials.push({
-        trialIndex: t,
-        condition: t % 2,
-        response: Math.random() > 0.5
-    });
-}
+            // shallow copy
+            cleanedExperiment = jQuery.extend({}, experimentResults);
+            // drop unneeded properties
+            delete cleanedExperiment.metadataThatWeDontNeed;
+            
+            return cleanedExperiment;
+        }
 
-// get ready for sending
-var cleanedExperiment = cleanDataBeforeSending(myExperimentData);
+        // make experiment
+        var myExperimentData = { 
+            experimentName: "thing_test", // no spaces! 
+            subjectID: 12345,
+            date: new Date().toISOString().slice(0, 10),
+            duration: performance.now(),
+            windowSize: [window.innerWidth, window.innerHeight],
+            crazyText: "test\\text\twith\nescapes",
+            metadataThatWeDontNeed: "blah blah",
+            trials: []
+        };
 
-// add a qulity check to file names to quickly see if something is wrong
-var accuracy = cleanedExperiment.trials.reduce((total, trial) => total+trial.response, 0) / cleanedExperiment.trials.length;
-accuracy = Math.round(accuracy * 100);
+        // make trials
+        for (let t = 0; t < 10; t++) {
+            myExperimentData.trials.push({
+                trialIndex: t,
+                condition: t % 2,
+                response: Math.random() > 0.5
+            });
+        }
 
-// send
-sendJSON(
-    cleanedExperiment, 
-    cleanedExperiment.experimentName, 
-    cleanedExperiment.subjectID, 
-    cleanedExperiment.date, 
-    accuracy, 
-    showFinished
-);
-</script>
+        // get ready for sending
+        var cleanedExperiment = cleanDataBeforeSending(myExperimentData);
+
+        // add a qulity check to file names to quickly see if something is wrong
+        var accuracy = cleanedExperiment.trials.reduce((total, trial) => total+trial.response, 0) / cleanedExperiment.trials.length;
+        accuracy = Math.round(accuracy * 100);
+
+        // send
+        sendJSON(
+            cleanedExperiment, 
+            cleanedExperiment.experimentName, 
+            cleanedExperiment.subjectID, 
+            cleanedExperiment.date, 
+            accuracy, 
+            showFinished,
+            showError
+        );
+    </script>
+</body>
+</html>

@@ -28,5 +28,6 @@ $fh = fopen($dir . "/" . $subjectID . " acc_" . $accuracy . " date_" . $date . "
 fwrite($fh, $data);
 fclose($fh);
 
+// The javascript checks for this string
 echo "Yay Success!";
 ?>

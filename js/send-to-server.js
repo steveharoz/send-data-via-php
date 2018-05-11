@@ -1,25 +1,4 @@
-function showFinished() {
-	$('#sending').fadeOut().promise().done(() => $('#finished').fadeIn());
-	$('#subjectID').text(experiment.subjectID);
-}
-function showError(message) {
-	$('#sending').fadeOut().promise().done(() => $('#error').fadeIn());
-	$('#errorMessage').text(message);
-}
-
-function cleanDataBeforeSending (experimentResults) {
-	// compute duration (you need to set duration to performance.now() when the experiment starts)
-	experimentResults.duration = performance.now() - experimentResults.duration;
-
-    // shallow copy
-    cleanedExperiment = jQuery.extend({}, experimentResults);
-    // drop unneeded properties
-    delete cleanedExperiment.metadataThatWeDontNeed;
-	
-	return cleanedExperiment;
-}
-
-function sendJSON(experimentResults, experimentName = "myexperiment", subjectID, experimentDate, quickCheckInfo=100, callback) {
+function sendJSON(experimentResults, experimentName = "myexperiment", subjectID, experimentDate, quickCheckInfo=100, callbackSuccess, callbackError) {
 	// show size of block data
 	console.log("block size (bytes): " + encodeURIComponent(JSON.stringify(experimentResults, null, " ")).length);
 
@@ -42,8 +21,8 @@ function sendJSON(experimentResults, experimentName = "myexperiment", subjectID,
 	.then(response => {
 		console.log(response)
 		if (response.endsWith("Yay Success!"))
-			callback();
+			callbackSuccess();
 		else
-			showError(response);
+			callbackError("Failed to upload<br><br>" + JSON.stringify(experimentResults, null, " "));
 	});
 }
